@@ -1,0 +1,10 @@
+/var/log/supervisor/supervisord.log /var/log/supervisor/*/*.out /var/log/supervisor/*/*.err {
+    rotate 5
+    notifempty
+    daily
+    compress
+    missingok
+    postrotate
+        /usr/bin/killall -USR2 supervisord
+    endscript
+}

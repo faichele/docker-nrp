@@ -1,0 +1,23 @@
+[program:virtualcoach]
+command=/bin/bash -c "source $HBP/user-scripts/nrp_variables && export PYTHONPATH=$HOME/.opt/platform_venv/lib/python2.7/site-packages:/home/bbpnrsoa/nrp/src/VirtualCoach/hbp_nrp_virtual_coach/hbp_nrp_virtual_coach:/home/bbpnrsoa/nrp/src/VirtualCoach/hbp_nrp_virtual_coach:$PYTHONPATH && cd /home/bbpnrsoa/nrp/src/Experiments/demo_carousel && exec python /home/bbpnrsoa/nrp/src/Experiments/demo_carousel/run_experiments.py"
+numprocs=1
+numprocs_start=0
+priority=999
+autostart=true
+autorestart=unexpected
+startsecs=1
+startretries=3
+exitcodes=0,2
+stopsignal=TERM
+stopwaitsecs=10
+killasgroup=false
+directory=/home/bbpnrsoa/nrp/src/Experiments/demo_carousel
+environment=HBP=%(ENV_HBP)s
+user=bbpnrsoa
+redirect_stderr=false
+stdout_logfile=/var/log/supervisor/virtualcoach/virtualcoach.out
+stdout_logfile_maxbytes=125MB
+stdout_logfile_backups=3
+stderr_logfile=/var/log/supervisor/virtualcoach/virtualcoach.err
+stderr_logfile_maxbytes=125MB
+stderr_logfile_backups=3

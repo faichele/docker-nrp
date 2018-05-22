@@ -1,0 +1,56 @@
+version: '2'
+
+services:
+    zyklio-nrp-backend-dev:
+        build:
+            context: .
+            dockerfile: backend.Dockerfile
+            args:
+                NRP_USER: faichele
+                NRP_NUM_PROCESSES: 4
+                NRP_CMAKE_BUILD_TYPE: 'Debug'
+                ROS_MASTER_URI: 'http://nrp-backend:11311'
+        image: zyklio-nrp-backend-dev
+        hostname: nrp-backend
+        environment:
+          ROS_MASTER_URI: 'http://nrp-backend:11311'
+        networks:
+          nrp-local-network:
+            aliases:
+              - nrp-backend
+    zyklio-nrp-cle-dev:
+        build:
+            context: .
+            dockerfile: cle.Dockerfile
+            args:
+                NRP_USER: faichele
+                NRP_NUM_PROCESSES: 4
+                NRP_CMAKE_BUILD_TYPE: 'Debug'
+                ROS_MASTER_URI: 'http://nrp-backend:11311'
+        image: zyklio-nrp-cle-dev
+        hostname: nrp-cle
+        environment:
+          ROS_MASTER_URI: 'http://nrp-backend:11311'
+        networks:
+          nrp-local-network:
+            aliases:
+              - nrp-cle
+    zyklio-nrp-frontend-dev:
+       build:
+           context: .
+           dockerfile: frontend.Dockerfile
+           args:
+               NRP_USER: faichele
+               NRP_NUM_PROCESSES: 4
+               NRP_CMAKE_BUILD_TYPE: 'Debug'
+               ROS_MASTER_URI: 'http://nrp-backend:11311'
+       image: zyklio-nrp-frontend-dev
+       hostname: nrp-frontend
+       environment:
+         ROS_MASTER_URI: 'http://nrp-backend:11311'
+       networks:
+          nrp-local-network:
+            aliases:
+              - nrp-frontend
+networks:
+  nrp-local-network:
