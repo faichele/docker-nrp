@@ -264,4 +264,13 @@ RUN /bin/bash -c "source ${NRP_INSTALL_DIR}/share/gazebo/setup.sh \
     && source /opt/ros/${NRP_ROS_VERSION}/setup.bash \
     && catkin_make --make-args -j4"
 
+USER root
+COPY ./scripts/backend-start.sh /usr/local/bin/backend-start.sh
+RUN chmod +x /usr/local/bin/backend-start.sh
+
+RUN usermod -a -G sudo ${NRP_USER}
+
+RUN chown ${NRP_USER}:${NRP_USER} /home/${NRP_USER}/.ros -R
+
+USER ${NRP_USER}
 CMD tail -f /dev/null

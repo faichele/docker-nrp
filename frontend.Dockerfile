@@ -39,7 +39,7 @@ RUN /bin/bash -c "rm -rf node_modules && source $HOME/.nvm/nvm.sh && nvm use 8 &
 
 # ExDFrontend
 WORKDIR ${NRP_SOURCE_DIR}/ExDFrontend
-RUN /bin/bash -c "source $HOME/.nvm/nvm.sh && nvm use 8 && npm install && \
+RUN /bin/bash -c "rm -rf node_modules && source $HOME/.nvm/nvm.sh && nvm use 8 && npm install && \
                   npm install -g grunt && \
                   grunt build"
 
@@ -63,9 +63,16 @@ RUN /bin/bash -c "echo \"Setting configuration files to default mode (offline mo
 
 # Finally, another chown to $NRP_USER}
 USER root
-RUN /bin/bash -c "chown -R ${NRP_USER}:${NRP_USER} ${HOME} -R"
+# RUN /bin/bash -c "chown -R ${NRP_USER}:${NRP_USER} ${HOME} -R"
  
-RUN apt-get autoclean
+# RUN apt-get autoclean
+
+COPY ./scripts/frontend-start.sh /usr/local/bin/frontend-start.sh
+RUN chmod +x /usr/local/bin/frontend-start.sh
 
 USER ${NRP_USER}
+
+RUN /bin/bash -c "sed -i \"s/http:\/\/localhost/http:\/\/nrp-cle/g\" ${HBP}/ExDFrontend/app/config.json ${HBP}/nrpBackendProxy/config.json && \
+		  sed -i \"s/ws:\/\/localhost/ws:\/\/nrp-cle/g\" ${HBP}/ExDFrontend/app/config.json ${HBP}/nrpBackendProxy/config.json"
+
 CMD tail -f /dev/null

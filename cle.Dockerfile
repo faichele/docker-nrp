@@ -184,6 +184,13 @@ RUN export VIRTUAL_ENV=$VIRTUAL_ENV && make devinstall
 # VirtualCoach
 WORKDIR ${NRP_SOURCE_DIR}/VirtualCoach
 RUN export VIRTUAL_ENV=$VIRTUAL_ENV && make devinstall
- 
+
+# nginx configuration for this Docker setup
+COPY ./config/nginx/frontend.conf /home/${NRP_USER}/.local/etc/nginx/conf.d/frontend.conf
+
+USER root
+COPY ./scripts/cle-start.sh /usr/local/bin/cle-start.sh
+RUN chmod +x /usr/local/bin/cle-start.sh
+
 USER ${NRP_USER}
 CMD tail -f /dev/null
