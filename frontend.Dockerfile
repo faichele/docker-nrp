@@ -5,13 +5,13 @@ ARG NRP_NUM_PROCESSES
 ARG ROS_MASTER_URI
 
 #   Set enviroment to build from bitbucket
-ENV NRP_INSTALL_MODE user
-ENV HOME /home/${NRP_USER}
-ENV NRP_ROS_VERSION kinetic
-ENV NRP_SOURCE_DIR /home/${NRP_USER}/nrp/src
-ENV NRP_INSTALL_DIR /home/${NRP_USER}/.local
-ENV HBP ${NRP_SOURCE_DIR}
-ENV ROS_MASTER_URI ${ROS_MASTER_URI}
+ENV NRP_INSTALL_MODE=user \
+    HOME=/home/${NRP_USER} \
+    NRP_ROS_VERSION=kinetic \
+    NRP_SOURCE_DIR=/home/${NRP_USER}/nrp/src \
+    NRP_INSTALL_DIR=/home/${NRP_USER}/.local \
+    HBP=${NRP_SOURCE_DIR} \
+    ROS_MASTER_URI=${ROS_MASTER_URI}
 
 #   Set environment vars
 ENV C_INCLUDE_PATH=${NRP_INSTALL_DIR}/include:$C_INCLUDE_PATH \
@@ -21,58 +21,52 @@ ENV C_INCLUDE_PATH=${NRP_INSTALL_DIR}/include:$C_INCLUDE_PATH \
     PATH=${NRP_INSTALL_DIR}/bin:$PATH \
     VIRTUAL_ENV=${HOME}/.opt/platform_venv
 
-USER root
-RUN /bin/bash -c "apt-get -y install ruby-compass && \
-                  gem install compass"
-
 USER ${NRP_USER}
-
-# Frontend components
-RUN /bin/bash -c "source $HOME/.nvm/nvm.sh \
-    && nvm install 8 \
-    && nvm alias default 8 \
-    && nvm use default"
-
 # brainvisualizer
-WORKDIR ${NRP_SOURCE_DIR}/brainvisualizer
-RUN /bin/bash -c "rm -rf node_modules && source $HOME/.nvm/nvm.sh && nvm use 8 && npm install"
+# WORKDIR ${NRP_SOURCE_DIR}/brainvisualizer
+RUN /bin/bash -c "cd ${NRP_SOURCE_DIR}/brainvisualizer && \
+                  rm -rf node_modules && source $HOME/.nvm/nvm.sh && nvm use 8 && npm install"
 
 # ExDFrontend
-WORKDIR ${NRP_SOURCE_DIR}/ExDFrontend
-RUN /bin/bash -c "rm -rf node_modules && source $HOME/.nvm/nvm.sh && nvm use 8 && npm install && \
+# WORKDIR ${NRP_SOURCE_DIR}/ExDFrontend
+RUN /bin/bash -c "cd ${NRP_SOURCE_DIR}/ExDFrontend && \
+                  rm -rf node_modules && source $HOME/.nvm/nvm.sh && nvm use 8 && npm install && \
                   npm install -g grunt && \
                   grunt build"
 
 # nrpBackendProxy
-WORKDIR ${NRP_SOURCE_DIR}/nrpBackendProxy
-RUN /bin/bash -c "source $HOME/.nvm/nvm.sh && nvm use 8 && npm install"
+# WORKDIR ${NRP_SOURCE_DIR}/nrpBackendProxy
+RUN /bin/bash -c "cd ${NRP_SOURCE_DIR}/nrpBackendProxy && \
+                  source $HOME/.nvm/nvm.sh && nvm use 8 && npm install"
 
 # SlurmClusterMonitor
-WORKDIR ${NRP_SOURCE_DIR}/SlurmClusterMonitor
-RUN /bin/bash -c "source $HOME/.nvm/nvm.sh && nvm use 8 && npm install"
+# WORKDIR ${NRP_SOURCE_DIR}/SlurmClusterMonitor
+RUN /bin/bash -c "cd ${NRP_SOURCE_DIR}/SlurmClusterMonitor && \
+                  source $HOME/.nvm/nvm.sh && nvm use 8 && npm install"
 
 # Setup local storage database
-RUN /bin/bash -c "echo \"Setting up local storage database\" && \
-                  source $HOME/.nvm/nvm.sh && nvm use 8 && \
-                  chmod +x ${HBP}/user-scripts/configure_storage_database && \
-                  ${HBP}/user-scripts/configure_storage_database"
+# RUN /bin/bash -c "echo \"Setting up local storage database\" && \
+#                  source $HOME/.nvm/nvm.sh && nvm use 8 && \
+#                  chmod +x ${HBP}/user-scripts/configure_storage_database && \
+#                  ${HBP}/user-scripts/configure_storage_database"
                   
-RUN /bin/bash -c "echo \"Setting configuration files to default mode (offline mode)\" && \
-                  $HBP/user-scripts/running_mode \"2\" && \
-                  echo \"DONE\""
+# RUN /bin/bash -c "echo \"Setting configuration files to default mode (offline mode)\" && \
+#                   $HBP/user-scripts/running_mode \"2\" && \
+#                   echo \"DONE\""
 
-# Finally, another chown to $NRP_USER}
 USER root
-# RUN /bin/bash -c "chown -R ${NRP_USER}:${NRP_USER} ${HOME} -R"
- 
-# RUN apt-get autoclean
 
 COPY ./scripts/frontend-start.sh /usr/local/bin/frontend-start.sh
-RUN chmod +x /usr/local/bin/frontend-start.sh
+RUN /bin/bash -c "chown ${NRP_USER}:${NRP_USER} ${HOME}/.local/etc -R && \
+                  chmod +x /usr/local/bin/frontend-start.sh && \
+		  mkdir -p /home/${NRP_USER}/.opt/nrpStorage && \
+		  chown ${NRP_USER}:${NRP_USER} /home/${NRP_USER}/.opt -R"
 
 USER ${NRP_USER}
-
-RUN /bin/bash -c "sed -i \"s/http:\/\/localhost/http:\/\/nrp-cle/g\" ${HBP}/ExDFrontend/app/config.json ${HBP}/nrpBackendProxy/config.json && \
-		  sed -i \"s/ws:\/\/localhost/ws:\/\/nrp-cle/g\" ${HBP}/ExDFrontend/app/config.json ${HBP}/nrpBackendProxy/config.json"
+# Call configure_nrp last?
+WORKDIR ${NRP_SOURCE_DIR}/user-scripts
+RUN /bin/bash -c "source ./nrp_variables && source ./nrp_functions && configure_nrp && \
+                  sed -i \"s/http:\/\/localhost/http:\/\/nrp-cle/g\" ${HBP}/ExDFrontend/app/config.json ${HBP}/nrpBackendProxy/config.json && \
+                  sed -i \"s/ws:\/\/localhost/ws:\/\/nrp-cle/g\" ${HBP}/ExDFrontend/app/config.json ${HBP}/nrpBackendProxy/config.json"
 
 CMD tail -f /dev/null

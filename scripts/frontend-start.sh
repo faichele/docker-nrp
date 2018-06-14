@@ -15,7 +15,7 @@ echo "NRP installation directory: $NRP_INSTALL_DIR"
 echo "HBP directory: $HBP"
 
 source /opt/ros/kinetic/setup.bash
-source $HBP/user-scripts/nrp_variables
+source /etc/nrp/nrp_variables
 source $HBP/user-scripts/nrp_functions
 source $HBP/user-scripts/nrp_aliases
 
@@ -24,12 +24,12 @@ export GAZEBO_MASTER_URI=http://nrp-cle:11345
 echo "Starting nrpBackendProxy..."
 cd $HBP/nrpBackendProxy && node app.js &
 echo "Started nrpBackendProxy."
-sleep 1
+sleep 5
 echo "Starting rosbridge server..."
 rosrun rosbridge_server rosbridge_websocket &
 echo "Started rosbridge server."
 
-sleep 1
+sleep 5
 echo "Starting ExDFrontend node.js server..."
 cd $HBP/ExDFrontend && grunt serve &
 echo "Started ExDFrontend node.js server."

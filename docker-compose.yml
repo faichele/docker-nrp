@@ -6,20 +6,26 @@ services:
             context: .
             dockerfile: backend.Dockerfile
             args:
-                NRP_USER: faichele
+                NRP_USER: fabian
                 NRP_NUM_PROCESSES: 4
                 NRP_CMAKE_BUILD_TYPE: 'Debug'
-                ROS_MASTER_URI: 'http://nrp-backend:11311'
+                ROS_MASTER_URI: http://nrp-backend:11311
+        devices:
+         - /dev/nvidia0
+         - /dev/nvidiactl
+         - /dev/nvidia-uvm
+         - /dev/nvidia-uvm-tools
         image: zyklio-nrp-backend-dev
         hostname: nrp-backend
         volumes:
           - ./scripts/backend-start.sh:/usr/local/bin/backend-start.sh
-          - ./scripts/nrp_variables:/home/$NRP_USER/nrp/src/user-scripts/nrp_variables
-          - ./scripts/gzserver:/home/$NRP_USER/.opt/bbp/nrp-services/gzserver
-          - ./scripts/gzbridge:/home/$NRP_USER/.opt/bbp/nrp-services/gzbridge
+          - ./scripts/nrp_variables:/home/fabian/nrp/src/user-scripts/nrp_variables
+          - ./scripts/gzserver:/home/fabian/.opt/bbp/nrp-services/gzserver
+          - ./scripts/gzbridge:/home/fabian/.opt/bbp/nrp-services/gzbridge
+          - nvidia_driver_390.30:/usr/local/nvidia:ro
         command: /usr/local/bin/backend-start.sh
         environment:
-          ROS_MASTER_URI: 'http://nrp-backend:11311'
+          ROS_MASTER_URI: http://nrp-backend:11311
         networks:
           nrp-local-network:
             ipv4_address: 10.5.0.2
@@ -30,29 +36,33 @@ services:
             context: .
             dockerfile: cle.Dockerfile
             args:
-                NRP_USER: faichele
+                NRP_USER: fabian
                 NRP_NUM_PROCESSES: 4
                 NRP_CMAKE_BUILD_TYPE: 'Debug'
-                ROS_MASTER_URI: 'http://nrp-backend:11311'
+                ROS_MASTER_URI: http://nrp-backend:11311
+        devices:
+         - /dev/nvidia0
+         - /dev/nvidiactl
+         - /dev/nvidia-uvm
+         - /dev/nvidia-uvm-tools
         depends_on:
           - "zyklio-nrp-backend-dev"
         image: zyklio-nrp-cle-dev
         hostname: nrp-cle
         volumes:
           - ./scripts/cle-start.sh:/usr/local/bin/cle-start.sh
-          - ./scripts/nrp_variables:/home/$NRP_USER/nrp/src/user-scripts/nrp_variables
-          - ./scripts/gzserver:/home/$NRP_USER/.opt/bbp/nrp-services/gzserver
-          - ./scripts/gzbridge:/home/$NRP_USER/.opt/bbp/nrp-services/gzbridge
-          - $HOME/src/NRP:/home/$NRP_USER/nrp/src
-          - ./config/nginx/frontend.conf:/home/$NRP_USER/.local/etc/nginx/conf.d/frontend.conf
-          - ./config/nginx/nrp-services.conf:/home/$NRP_USER/.local/etc/nginx/conf.d/nrp-services.conf
-          - ./config/nginx/uwsgi-nrp.ini:/home/$NRP_USER/.local/etc/nginx/conf.d/uwsgi-nrp.ini
+          - ./scripts/nrp_variables:/home/fabian/nrp/src/user-scripts/nrp_variables
+          - ./scripts/gzserver:/home/fabian/.opt/bbp/nrp-services/gzserver
+          - ./scripts/gzbridge:/home/fabian/.opt/bbp/nrp-services/gzbridge
+          # - ./src/NRP:/home/faichele/nrp/src
+          - ./config/nginx/frontend.conf:/home/fabian/.local/etc/nginx/conf.d/frontend.conf
+          - ./config/nginx/nrp-services.conf:/home/fabian/.local/etc/nginx/conf.d/nrp-services.conf
+          - ./config/nginx/uwsgi-nrp.ini:/home/fabian/.local/etc/nginx/uwsgi-nrp.ini
           - /tmp/.X11-unix:/tmp/.X11-unix:rw
+          - nvidia_driver_390.30:/usr/local/nvidia:ro
         command: /usr/local/bin/cle-start.sh
-        devices:
-          - /dev/nvidia0
         environment:
-          - ROS_MASTER_URI='http://nrp-backend:11311'
+          - ROS_MASTER_URI=http://nrp-backend:11311
           - DISPLAY=:0
           - QT_X11_NO_MITSHM=1
         # network_mode: bridge
@@ -66,10 +76,15 @@ services:
             context: .
             dockerfile: frontend.Dockerfile
             args:
-                NRP_USER: faichele
+                NRP_USER: fabian
                 NRP_NUM_PROCESSES: 4
                 NRP_CMAKE_BUILD_TYPE: 'Debug'
                 ROS_MASTER_URI: 'http://nrp-backend:11311'
+        devices:
+         - /dev/nvidia0
+         - /dev/nvidiactl
+         - /dev/nvidia-uvm
+         - /dev/nvidia-uvm-tools        
         depends_on:
           - "zyklio-nrp-backend-dev"
           - "zyklio-nrp-cle-dev"
@@ -77,12 +92,16 @@ services:
         hostname: nrp-frontend
         volumes:
           - ./scripts/frontend-start.sh:/usr/local/bin/frontend-start.sh
-          - ./scripts/nrp_variables:/home/$NRP_USER/nrp/src/user-scripts/nrp_variables
-          - ./scripts/gzserver:/home/$NRP_USER/.opt/bbp/nrp-services/gzserver
-          - ./scripts/gzbridge:/home/$NRP_USER/.opt/bbp/nrp-services/gzbridge
+          - ./scripts/nrp_variables:/home/fabian/nrp/src/user-scripts/nrp_variables
+          - ./scripts/gzserver:/home/fabian/.opt/bbp/nrp-services/gzserver
+          - ./scripts/gzbridge:/home/fabian/.opt/bbp/nrp-services/gzbridge
+          - /tmp/.X11-unix:/tmp/.X11-unix:rw
+          - nvidia_driver_390.30:/usr/local/nvidia:ro
         command: /usr/local/bin/frontend-start.sh
         environment:
-          ROS_MASTER_URI: 'http://nrp-backend:11311'
+          - ROS_MASTER_URI=http://nrp-backend:11311
+          - DISPLAY=:0
+          - QT_X11_NO_MITSHM=1
         # network_mode: bridge
         networks:
           nrp-local-network:

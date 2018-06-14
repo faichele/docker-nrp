@@ -1,4 +1,5 @@
-FROM ubuntu:xenial
+FROM nvidia/opengl:1.0-glvnd-runtime-ubuntu16.04
+# FROM ubuntu:xenial
 # FROM mythical.alpenland.local:8102/fabian/docker-qtcreator
 
 ARG NRP_USER
@@ -23,9 +24,6 @@ ENV C_INCLUDE_PATH=${NRP_INSTALL_DIR}/include:$C_INCLUDE_PATH \
     VIRTUAL_ENV=${HOME}/.opt/platform_venv
 
 USER root
-
-RUN echo "NRP_USER: ${NRP_USER}"
-RUN echo "NRP_NUM_PROCESSES: ${NRP_NUM_PROCESSES}"
 
 RUN userdel user || true
 RUN groupdel  user || true
@@ -122,7 +120,7 @@ WORKDIR ${NRP_SOURCE_DIR}
 RUN git clone https://bitbucket.org/hbpneurorobotics/user-scripts
 
 WORKDIR ${NRP_SOURCE_DIR}/user-scripts
-RUN ./clone-all-repos
+RUN /bin/bash -c "echo \"Cloning all repositories\" && ./clone-all-repos"
 
 # COPY ./autogen.sh ${NRP_SOURCE_DIR}/mvapich2/autogen.sh
 
@@ -267,10 +265,13 @@ RUN /bin/bash -c "source ${NRP_INSTALL_DIR}/share/gazebo/setup.sh \
 USER root
 COPY ./scripts/backend-start.sh /usr/local/bin/backend-start.sh
 RUN chmod +x /usr/local/bin/backend-start.sh
+COPY ./scripts/nrp_variables /etc/nrp/nrp_variables
 
 RUN usermod -a -G sudo ${NRP_USER}
 
 RUN chown ${NRP_USER}:${NRP_USER} /home/${NRP_USER}/.ros -R
+
+WORKDIR /home/${NRP_USER}
 
 USER ${NRP_USER}
 CMD tail -f /dev/null
